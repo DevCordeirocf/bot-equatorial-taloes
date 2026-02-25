@@ -1,5 +1,3 @@
-Aqui está uma proposta de README.md focada em clareza, organização técnica e legibilidade para o GitHub, evitando o uso de ícones e mantendo um tom profissional.
-
 Bot Equatorial – Versão Atualizada
 Automação em Python desenvolvida com Selenium e Microsoft Edge para a solicitação automática de segunda via de faturas da Equatorial via WhatsApp Web. O projeto inclui gerenciamento inteligente de downloads e organização sistemática de arquivos.
 
