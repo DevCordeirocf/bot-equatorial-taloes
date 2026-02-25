@@ -1,190 +1,107 @@
-```md
-# Bot Equatorial – Versão Atualizada
+Aqui está uma proposta de README.md focada em clareza, organização técnica e legibilidade para o GitHub, evitando o uso de ícones e mantendo um tom profissional.
 
-Automação em Python utilizando Selenium e Microsoft Edge para solicitar segunda via de faturas da Equatorial via WhatsApp Web, com download automático e organização dos arquivos.
+Bot Equatorial – Versão Atualizada
+Automação em Python desenvolvida com Selenium e Microsoft Edge para a solicitação automática de segunda via de faturas da Equatorial via WhatsApp Web. O projeto inclui gerenciamento inteligente de downloads e organização sistemática de arquivos.
 
-Este repositório é um fork da versão original, com melhorias de estabilidade, tratamento de erros e controle mais confiável do fluxo de mensagens e downloads.
+Este repositório é um fork da versão original, implementando melhorias críticas em estabilidade, tratamento de exceções e controle de fluxo de mensagens.
 
----
+Principais Atualizações
+1. Envio de Mensagens Robusto
+A versão anterior utilizava seletores fixos e não possuía tratamento para instabilidades do DOM. Esta versão implementa:
 
-## Principais Atualizações em Relação ao Projeto Original
+Múltiplos seletores alternativos para localizar a caixa de texto.
 
-### 1. Envio de mensagens mais robusto
+Sistema de retentativa: até 5 tentativas automáticas em caso de erro.
 
-Na versão original, o envio de mensagens utilizava apenas um seletor fixo para localizar a caixa de texto do WhatsApp Web e não possuía múltiplas tentativas ou tratamento detalhado de exceções.
+Tratamento de exceções específicas: StaleElementReferenceException, TimeoutException, NoSuchElementException e ElementClickInterceptedException.
 
-Nesta versão:
+Limpeza de buffer: Executa o comando CTRL + A + BACKSPACE antes de cada envio.
 
-- Foram adicionados múltiplos seletores alternativos para localizar a caixa de texto.
-- O envio de mensagem possui até 5 tentativas automáticas.
-- Há tratamento para:
-  - `StaleElementReferenceException`
-  - `TimeoutException`
-  - `NoSuchElementException`
-  - `ElementClickInterceptedException`
-- O campo é limpo antes do envio (`CTRL + A` + `BACKSPACE`).
-- É feita uma tentativa de confirmação visual da mensagem enviada.
+Confirmação visual: Verificação de entrega da mensagem no chat.
 
-Isso reduz falhas causadas por mudanças no DOM ou por instabilidade do WhatsApp Web.
+2. Espera Inteligente (Smart Wait)
+Substituição de atrasos fixos (time.sleep) pela função aguardar_estabilidade_bot(), que monitora:
 
----
+Presença de textos-chave configuráveis no chat.
 
-### 2. Espera inteligente pela resposta do bot
+Status do indicador "digitando" do bot.
 
-Na versão original, grande parte do fluxo dependia de `time.sleep()` e de um texto fixo específico para identificar novas mensagens.
+Fluxo de novas mensagens para garantir que o chat estabilizou antes de prosseguir.
 
-Nesta versão foi implementada a função `aguardar_estabilidade_bot()`, que:
+3. Controle de Download e Integridade
+O script agora valida o ciclo de vida do arquivo PDF:
 
-- Aguarda um texto-chave configurável aparecer no chat.
-- Verifica se o indicador “digitando” está ativo.
-- Monitora se novas mensagens continuam chegando.
-- Aguarda a estabilização do chat antes de continuar o fluxo.
+Monitoramento de pasta: Detecta novos arquivos e ignora temporários (.crdownload ou .part).
 
-O objetivo é reduzir dependência de tempos fixos e tornar o processo mais confiável.
+Validação de escrita: Verifica se o tamanho do arquivo parou de oscilar antes de manipulá-lo.
 
----
+Padronização de nomenclatura: Renomeia arquivos para o formato YYYY-MM-DD_NOME_UNIDADE_CODIGO.pdf.
 
-### 3. Controle real do download de PDFs
+Sanitização: Remove caracteres inválidos e evita sobrescrita com contadores incrementais.
 
-Na versão original, o script apenas aguardava um tempo fixo após solicitar o envio da fatura, sem verificar se o arquivo foi realmente baixado.
-
-Nesta versão:
-
-- O sistema detecta os arquivos existentes antes do clique.
-- Após o clique, monitora a pasta de download.
-- Aguarda a conclusão de arquivos temporários (`.crdownload` ou `.part`).
-- Verifica a estabilidade do tamanho do arquivo antes de renomear.
-- Renomeia automaticamente o PDF no formato:
-
-```
-
-YYYY-MM-DD_NOME_UNIDADE_CODIGO.pdf
-
-```
-
-- Evita sobrescrita adicionando contador incremental quando necessário.
-- Remove caracteres inválidos do nome do arquivo.
-
-Isso garante que o arquivo esteja completo antes de finalizar o processo.
-
----
-
-### 4. Melhor organização do fluxo
-
-O fluxo foi reorganizado para depender de textos esperados no chat, em vez de apenas atrasos fixos. O encerramento da conversa também foi estruturado para reduzir interferência no processamento da próxima matrícula.
-
----
-
-## Estrutura do Projeto
-
-```
-
+Estrutura do Projeto
+Plaintext
 bot-equatorial/
 │
 ├── data/
-│   └── matriculas.json
+│   └── matriculas.json      # Dados das unidades consumidoras
 │
 ├── downloads/
-│   └── YYYY-MM-DD/
+│   └── YYYY-MM-DD/          # Faturas baixadas organizadas por data
 │
 ├── src/
-│   └── main.py
+│   └── main.py              # Script principal
 │
-├── msedgedriver.exe
+├── msedgedriver.exe         # WebDriver do Microsoft Edge
 └── README.md
+Configuração
+1. Instalação de Dependências
+Caso o projeto possua um arquivo de requisitos:
 
-```
-
----
-
-## Configuração
-
-### 1. Instalar dependências
-
-Se houver `requirements.txt`:
-
-```
-
+Bash
 pip install -r requirements.txt
+Ou instale manualmente a biblioteca Selenium:
 
-```
-
-Caso contrário:
-
-```
-
+Bash
 pip install selenium
+2. WebDriver
+Baixe o Microsoft Edge WebDriver compatível com a versão instalada no seu navegador e coloque o executável msedgedriver.exe na raiz do projeto.
 
-```
+3. Configuração de Dados
+Edite o arquivo data/matriculas.json seguindo o modelo:
 
----
-
-### 2. WebDriver
-
-Baixe a versão do Microsoft Edge WebDriver compatível com seu navegador e coloque o arquivo `msedgedriver.exe` na raiz do projeto.
-
----
-
-### 3. Configurar matrículas
-
-Arquivo:
-
-```
-
-data/matriculas.json
-
-````
-
-Exemplo:
-
-```json
+JSON
 [
   {
     "nome": "Bloco 1 Apt 101",
-    "codigo": "1234567891"
+    "codigo": "3006215636"
   },
   {
     "nome": "Bloco 1 Apt 102",
     "codigo": "1234567890"
   }
 ]
-````
+No início do script main.py, configure suas credenciais:
 
----
-
-### 4. Configurar telefone e e-mail
-
-No início do script:
-
-```python
-TELEFONE_EQUATORIAL = "5599999999999"
+Python
+TELEFONE_EQUATORIAL = "559820550116"
 EMAIL_CADASTRO = "seuemail@email.com"
-```
+Execução
+Execute o script principal:
 
----
-
-## Execução
-
-```
+Bash
 python main.py
-```
+O navegador Edge abrirá no WhatsApp Web. Escaneie o QR Code.
 
-Passos:
+Aguarde o carregamento total das conversas.
 
-1. O navegador abrirá o WhatsApp Web.
-2. Escaneie o QR Code.
-3. Aguarde as conversas carregarem.
-4. Pressione ENTER no terminal.
-5. O script executará o fluxo automaticamente para cada matrícula.
+Volte ao terminal e pressione ENTER.
 
----
+O bot processará cada matrícula cadastrada sequencialmente.
 
-## Observações
+Observações Técnicas
+O projeto depende inteiramente da estrutura HTML atual do WhatsApp Web. Mudanças globais na interface podem exigir a atualização dos seletores CSS/XPath.
 
-* O funcionamento depende da estrutura atual do WhatsApp Web.
-* Mudanças significativas no layout podem exigir atualização dos seletores.
-* É recomendável manter o WebDriver atualizado.
-* O projeto é uma automação baseada em interface web e pode ser impactado por mudanças no comportamento do bot da Equatorial.
+É recomendável manter o WebDriver e o navegador sempre na mesma versão para evitar erros de compatibilidade.
 
-```
-```
+Por se tratar de uma automação baseada em interface (UI), o desempenho pode variar de acordo com a velocidade da conexão e a latência de resposta do bot da Equatorial.
