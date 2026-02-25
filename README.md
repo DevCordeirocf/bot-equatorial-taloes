@@ -1,123 +1,190 @@
-# Automação de Faturas - Equatorial Energia (WhatsApp)
+```md
+# Bot Equatorial – Versão Atualizada
 
-Automação desenvolvida em **Python** com **Selenium** para coletar faturas (PDFs) via atendimento do WhatsApp da Equatorial Energia. Ideal para gestão de condomínios, com salvamento automático e organização por data.
+Automação em Python utilizando Selenium e Microsoft Edge para solicitar segunda via de faturas da Equatorial via WhatsApp Web, com download automático e organização dos arquivos.
+
+Este repositório é um fork da versão original, com melhorias de estabilidade, tratamento de erros e controle mais confiável do fluxo de mensagens e downloads.
 
 ---
 
-## Funcionalidades principais
+## Principais Atualizações em Relação ao Projeto Original
 
-- **Interação com o bot da Equatorial** respeitando tempos de resposta.
-- **Espera explícita** com `WebDriverWait` para fluxos mais estáveis.
-- **Organização automática**: pastas diárias em `downloads/YYYY-MM-DD/`.
-- **Login via QR Code** do WhatsApp Web (Edge).
+### 1. Envio de mensagens mais robusto
 
-## Tecnologias
+Na versão original, o envio de mensagens utilizava apenas um seletor fixo para localizar a caixa de texto do WhatsApp Web e não possuía múltiplas tentativas ou tratamento detalhado de exceções.
 
-- **Python 3.x**
-- **Selenium WebDriver**
-- **Microsoft Edge** + **msedgedriver.exe**
+Nesta versão:
 
-## Pré-requisitos
+- Foram adicionados múltiplos seletores alternativos para localizar a caixa de texto.
+- O envio de mensagem possui até 5 tentativas automáticas.
+- Há tratamento para:
+  - `StaleElementReferenceException`
+  - `TimeoutException`
+  - `NoSuchElementException`
+  - `ElementClickInterceptedException`
+- O campo é limpo antes do envio (`CTRL + A` + `BACKSPACE`).
+- É feita uma tentativa de confirmação visual da mensagem enviada.
 
-1. Python instalado (3.x)
-2. Microsoft Edge instalado
-3. Baixe o Edge WebDriver compatível: https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
-   - Coloque `msedgedriver.exe` na raiz do projeto ou no PATH.
+Isso reduz falhas causadas por mudanças no DOM ou por instabilidade do WhatsApp Web.
 
-## Instalação
+---
 
-1. Clone o repositório:
+### 2. Espera inteligente pela resposta do bot
 
-```powershell
-git clone https://github.com/seu-usuario/nome-do-repo.git
+Na versão original, grande parte do fluxo dependia de `time.sleep()` e de um texto fixo específico para identificar novas mensagens.
+
+Nesta versão foi implementada a função `aguardar_estabilidade_bot()`, que:
+
+- Aguarda um texto-chave configurável aparecer no chat.
+- Verifica se o indicador “digitando” está ativo.
+- Monitora se novas mensagens continuam chegando.
+- Aguarda a estabilização do chat antes de continuar o fluxo.
+
+O objetivo é reduzir dependência de tempos fixos e tornar o processo mais confiável.
+
+---
+
+### 3. Controle real do download de PDFs
+
+Na versão original, o script apenas aguardava um tempo fixo após solicitar o envio da fatura, sem verificar se o arquivo foi realmente baixado.
+
+Nesta versão:
+
+- O sistema detecta os arquivos existentes antes do clique.
+- Após o clique, monitora a pasta de download.
+- Aguarda a conclusão de arquivos temporários (`.crdownload` ou `.part`).
+- Verifica a estabilidade do tamanho do arquivo antes de renomear.
+- Renomeia automaticamente o PDF no formato:
+
 ```
 
-2. Instale as dependências:
+YYYY-MM-DD_NOME_UNIDADE_CODIGO.pdf
 
-```powershell
+```
+
+- Evita sobrescrita adicionando contador incremental quando necessário.
+- Remove caracteres inválidos do nome do arquivo.
+
+Isso garante que o arquivo esteja completo antes de finalizar o processo.
+
+---
+
+### 4. Melhor organização do fluxo
+
+O fluxo foi reorganizado para depender de textos esperados no chat, em vez de apenas atrasos fixos. O encerramento da conversa também foi estruturado para reduzir interferência no processamento da próxima matrícula.
+
+---
+
+## Estrutura do Projeto
+
+```
+
+bot-equatorial/
+│
+├── data/
+│   └── matriculas.json
+│
+├── downloads/
+│   └── YYYY-MM-DD/
+│
+├── src/
+│   └── main.py
+│
+├── msedgedriver.exe
+└── README.md
+
+```
+
+---
+
+## Configuração
+
+### 1. Instalar dependências
+
+Se houver `requirements.txt`:
+
+```
+
 pip install -r requirements.txt
+
 ```
 
-> Se preferir instalar manualmente apenas o Selenium:
+Caso contrário:
 
-```powershell
+```
+
 pip install selenium
+
 ```
 
 ---
 
-## Configuração dos Dados
+### 2. WebDriver
 
-Crie (ou confirme) o arquivo `data/matriculas.json` com a estrutura abaixo para indicar as unidades/consumidores que o robô deve processar:
+Baixe a versão do Microsoft Edge WebDriver compatível com seu navegador e coloque o arquivo `msedgedriver.exe` na raiz do projeto.
+
+---
+
+### 3. Configurar matrículas
+
+Arquivo:
+
+```
+
+data/matriculas.json
+
+````
+
+Exemplo:
 
 ```json
 [
   {
     "nome": "Bloco 1 Apt 101",
-    "codigo": "0000000000"
+    "codigo": "1234567891"
   },
   {
     "nome": "Bloco 1 Apt 102",
-    "codigo": "1111111111"
+    "codigo": "1234567890"
   }
 ]
-```
-
-- **Local do arquivo:** `data/matriculas.json`
-- **Formato:** array de objetos com `nome` e `codigo` (string).
+````
 
 ---
 
-## Como Usar
+### 4. Configurar telefone e e-mail
 
-1. Abra um terminal na pasta do projeto.
-2. Execute o script principal:
+No início do script:
 
-```powershell
+```python
+TELEFONE_EQUATORIAL = "5599999999999"
+EMAIL_CADASTRO = "seuemail@email.com"
+```
+
+---
+
+## Execução
+
+```
 python main.py
-# (ou `python src/bot.py` / outro nome se você alterou o entrypoint)
 ```
 
-3. Uma janela do Microsoft Edge será aberta no WhatsApp Web.
-4. Escaneie o QR Code com seu celular para logar.
-5. Aguarde até que a lista de conversas carregue completamente.
-6. Localize e clique na conversa com a Equatorial (ou no atendimento/contato oficial que responde com faturas) para abri-la — o robô envia mensagens para a conversa ativa.
-7. Assim que a conversa estiver aberta e visível no WhatsApp Web, volte ao terminal e pressione **ENTER** para iniciar o fluxo automático. Pressionar ENTER serve como confirmação de que a conversa correta está selecionada; o bot só começará após esse passo.
-8. O robô então:
-   - enviará os códigos do arquivo `data/matriculas.json` um a um,
-   - aguardará a resposta e o envio das faturas (PDFs),
-   - fará o download automático dos arquivos para `downloads/YYYY-MM-DD/`.
-9. Durante a execução, não mexa no mouse ou teclado na janela do navegador e mantenha a conexão estável — interações manuais podem atrapalhar o fluxo.
-10. Para interromper a execução, pressione Ctrl+C no terminal.
+Passos:
 
-Os arquivos PDF serão salvos automaticamente na pasta `downloads/` organizada por data.
+1. O navegador abrirá o WhatsApp Web.
+2. Escaneie o QR Code.
+3. Aguarde as conversas carregarem.
+4. Pressione ENTER no terminal.
+5. O script executará o fluxo automaticamente para cada matrícula.
 
 ---
 
-## Notas Importantes
+## Observações
 
-> **Antes de iniciar:** Depois de abrir a conversa correta com a Equatorial no WhatsApp Web, volte ao terminal e pressione **ENTER** para confirmar e iniciar o fluxo automático — o robô aguardará esse comando e só começará após a confirmação.
+* O funcionamento depende da estrutura atual do WhatsApp Web.
+* Mudanças significativas no layout podem exigir atualização dos seletores.
+* É recomendável manter o WebDriver atualizado.
+* O projeto é uma automação baseada em interface web e pode ser impactado por mudanças no comportamento do bot da Equatorial.
 
-> **Interferência Humana:** Não mexa no mouse ou teclado na janela do navegador enquanto o bot estiver operando — isso pode interromper a automação.
-
-> **Evite execuções em massa:** Não rode o script centenas de vezes seguidas em curto período, pois o WhatsApp pode considerar comportamento de spam e bloquear temporariamente o número.
-
-> **Uso responsável:** Ferramenta criada para **automação administrativa**. Respeite políticas de privacidade e termos de uso do serviço.
-
----
-
-## Dicas e Solução de Problemas
-
-- Se o WhatsApp Web não carregar, verifique sua conexão e se o Edge foi iniciado corretamente.
-- Mantenha o `msedgedriver.exe` na versão compatível com seu Edge.
-- Logs e saídas aparecem no terminal — acompanhe-os para identificar passo a passo.
-
----
-
-## Contribuição
-
-Se quiser contribuir: abra uma issue ou envie um pull request descrevendo a melhoria.
-
----
-
-_Desenvolvido para automação administrativa e de tarefas repetitivas — use com responsabilidade._
+```
+```
