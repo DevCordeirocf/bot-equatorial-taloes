@@ -12,8 +12,8 @@ from selenium.webdriver.edge.options import Options as EdgeOptions # type: ignor
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException, NoSuchElementException, ElementClickInterceptedException # type: ignore
 
 # Configurações
-TELEFONE_EQUATORIAL = "55999999999"  # Substitua pelo número correto da Equatorial (com DDD, sem + ou espaços)
-EMAIL_CADASTRO = "teste@gmail.com" # Substitua pelo email que deseja usar no cadastro (pode ser o mesmo para todas as unidades)
+TELEFONE_EQUATORIAL = "559820550116" 
+EMAIL_CADASTRO = "vbosque01@gmail.com"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(BASE_DIR, 'data', 'matriculas.json')
 HOJE = datetime.now().strftime('%Y-%m-%d')
@@ -325,6 +325,8 @@ def main():
         if aguardar_estabilidade_bot(driver, "outra conta"): enviar_texto(driver, "Não")
         if aguardar_estabilidade_bot(driver, "ajudar com mais"): enviar_texto(driver, "Não")
         if aguardar_estabilidade_bot(driver, "achou da nossa conversa"): enviar_texto(driver, "4")
+        if aguardar_estabilidade_bot(driver, "Você conseguiu resolver a sua solicitação?"): enviar_texto(driver, "3")
+
 
         print(f" [SUCESSO] Unidade {unidade['nome']} concluída.")
         time.sleep(5)
