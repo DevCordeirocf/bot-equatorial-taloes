@@ -441,9 +441,6 @@ def main():
         if aguardar_estabilidade_bot(driver, "achou da nossa conversa"): enviar_texto(driver, "4")
         if aguardar_estabilidade_bot(driver, "Você conseguiu resolver a sua solicitação?"): enviar_texto(driver, "3")
 
-        if aguardar_estabilidade_bot(driver, "achou da nossa conversa"): enviar_texto(driver, "5")
-        if aguardar_estabilidade_bot(driver, "conseguiu resolver"): enviar_texto(driver, "3")
-
         print(f" [SUCESSO] Unidade {unidade['nome']} concluída.")
         
         # LIMPEZA TOTAL (Opção C)
